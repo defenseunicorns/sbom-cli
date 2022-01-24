@@ -9,7 +9,7 @@ version: 1.11.2-bb.0
 annotations:
   bigbang.dev/cpe: |
     - cpe: cpe:2.3:a:istio:istio:1.11.2:*:*:*:*:*:*:*
-  bigbang.dev/images: |
+  helm.sh/images: |
     - image: registry1.dso.mil/ironbank/opensource/istio/pilot:1.11.2
     - image: registry1.dso.mil/ironbank/opensource/istio/install-cni:1.11.2
     - image: registry1.dso.mil/ironbank/opensource/istio/proxyv2:1.11.2

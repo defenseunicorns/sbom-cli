@@ -9,8 +9,8 @@ import (
 	"helm.sh/helm/v3/pkg/chart/loader"
 )
 
-const imagesKey = "bigbang.dev/images"
-const cpeKey = "bigbang.dev/cpe"
+const imagesKey = "helm.sh/images"
+const cpeKey = "helm.sh/cpe"
 
 func Read(path string) (*chart.Chart, error) {
 	chart, err := loader.LoadDir(path)

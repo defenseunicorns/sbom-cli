@@ -270,7 +270,7 @@ func ToCycloneDX(spdxBom *spdx.Document2_2) *cyclonedx.BOM {
 		Component: &cyclonedx.Component{
 			Name: spdxBom.CreationInfo.DocumentName,
 			// Version:
-
+			BOMRef: spdxBom.CreationInfo.DocumentName,
 		},
 	}
 	for _, pack := range spdxBom.Packages {
@@ -288,7 +288,8 @@ func SPDXPackageToCycloneComponent(p *spdx.Package2_2) cyclonedx.Component {
 		Name:    p.PackageName,
 		Version: p.PackageVersion,
 		//TODO @runyontr see how we pull this out
-		Type: "container",
+		Type:   "container",
+		BOMRef: string(p.PackageSPDXIdentifier),
 		// CPE: p. SPDX has multiple CPEs... What do we do here?
 		// PackageURL: p.PURL,
 		// PackageURL: p.

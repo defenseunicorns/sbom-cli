@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CycloneDX/cyclonedx-go"
 	"github.com/defenseunicorns/spdx-cli/pkg/helm"
 	"github.com/defenseunicorns/spdx-cli/pkg/sbom"
 	"github.com/defenseunicorns/spdx-cli/pkg/syft"
@@ -49,6 +50,7 @@ to quickly create a Cobra application.`,
 		}
 
 		imageList := helm.Images(chart)
+		imageMap := make(map[string]*spdx.Document2_2)
 		chartBom := spdx.Document2_2{
 			CreationInfo: &spdx.CreationInfo2_2{
 				// 2.1: SPDX Version; should be in the format "SPDX-2.2"
@@ -121,6 +123,7 @@ to quickly create a Cobra application.`,
 			if err != nil {
 				panic(err)
 			}
+			imageMap[image] = doc
 			//add entry for the image
 			chartBom.Packages[spdx.ElementID(fmt.Sprintf("image-%v", image))] = sbom.ImageToPackage(doc.CreationInfo.DocumentName)
 			// Add all the packages from the image too
@@ -154,6 +157,51 @@ to quickly create a Cobra application.`,
 			format, _ := cmd.Flags().GetString("output-format")
 			if format == "cyclonedx" {
 				cycloneBom := sbom.ToCycloneDX(&chartBom)
+				cycloneBom.Metadata.Component = &cyclonedx.Component{
+					Name:    chart.Metadata.Name,
+					Version: chart.Metadata.Version,
+					//Authors, etc
+					BOMRef: chart.Metadata.Name,
+				}
+
+				// chartDependency.Dependencies = &tmpDep
+				// imageRefs := make([]cyclonedx.Dependency, len(imageList))
+
+				// For each image in the list, make an entry that the image is a dependency of the chart
+				chartDependency := cyclonedx.Dependency{
+					Ref: chart.Metadata.Name,
+				}
+				imagesInChart := make([]cyclonedx.Dependency, 0)
+				for _, image := range imageList {
+					// imageRefs[i].Ref = image
+					imagesInChart = append(imagesInChart, cyclonedx.Dependency{
+						Ref: fmt.Sprintf("image-%v", image), //matches the ElementID for spdx
+					})
+				}
+				chartDependency.Dependencies = &imagesInChart
+
+				//Add the images as a dependency of the chart
+				cycloneBom.Dependencies = &[]cyclonedx.Dependency{chartDependency}
+
+				// For each image in the list, make a list of dependencies of the image.
+				for image, doc := range imageMap {
+					imageDep := cyclonedx.Dependency{
+						Ref: fmt.Sprintf("image-%v", image), //matches the ElementID for spdx
+					}
+					packageRefs := make([]cyclonedx.Dependency, 0)
+					//add this image as a dependency of the package
+					//Adding dependencies for image
+					for k := range doc.Packages {
+						tmp := append(packageRefs, cyclonedx.Dependency{
+							Ref: string(k),
+						})
+						packageRefs = tmp
+					}
+					imageDep.Dependencies = &packageRefs
+					tmp := append(*cycloneBom.Dependencies, imageDep)
+					cycloneBom.Dependencies = &tmp
+				}
+
 				sbom.WriteCycloneDX(file, cycloneBom)
 			} else {
 				sbom.WriteSPDX(file, &chartBom)
