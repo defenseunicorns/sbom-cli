@@ -50,6 +50,9 @@ to quickly create a Cobra application.`,
 		}
 
 		imageList := helm.Images(chart)
+		if len(imageList) == 0 {
+			panic(fmt.Errorf("Did not find any images in helm chart"))
+		}
 		imageMap := make(map[string]*spdx.Document2_2)
 		chartBom := spdx.Document2_2{
 			CreationInfo: &spdx.CreationInfo2_2{
