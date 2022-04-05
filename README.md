@@ -7,7 +7,7 @@ apiVersion: v2
 name: istio
 version: 1.11.2-bb.0
 annotations:
-  bigbang.dev/cpe: |
+  helm.sh/cpe: |
     - cpe: cpe:2.3:a:istio:istio:1.11.2:*:*:*:*:*:*:*
   helm.sh/images: |
     - image: registry1.dso.mil/ironbank/opensource/istio/pilot:1.11.2
